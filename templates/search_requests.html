@@ -1,0 +1,12 @@
+<p>You searched for: <strong>{{ query }}</strong></p>
+
+{% if employee %}
+    <p>Found {{ employee|length }} employee{{ books|pluralize }}.</p>
+    <ul>
+        {% for emp in employee %}
+        <li>{{ emp.last_name }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No employee matched your search criteria.</p>
+{% endif %}
