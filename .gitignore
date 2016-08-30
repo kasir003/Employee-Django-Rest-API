@@ -10,3 +10,4 @@ parts
 lib
 lib64
 .idea/
+.idea
