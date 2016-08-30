@@ -5,11 +5,11 @@ import datetime
 # Create your models here.
 
 class Department(models.Model):
-    dept_id = models.CharField(max_length=10, primary_key=True)
+    dept_id = models.IntegerField(primary_key=True)
     dept_name = models.CharField(max_length=30)
 
     def __str__(self):
-        return self.dept_name
+        return self.dept_id
 
     class Meta:
         ordering = ('dept_id',)
@@ -17,11 +17,11 @@ class Department(models.Model):
 
 class Employee(models.Model):
     first_name = models.CharField(max_length=30,blank=True)
-    last_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30,null=True,blank=True)
     emp_id = models.AutoField(primary_key=True)
     hire_date = models.DateField(default=datetime.date.today)
     email_id = models.EmailField(blank=True)
-    dept = models.ForeignKey(Department)
+    dept = models.ForeignKey(Department, null=True,blank= True,related_name="dept")
 
     def __str__(self):
         return '%s %s' % (self.first_name, self.last_name)

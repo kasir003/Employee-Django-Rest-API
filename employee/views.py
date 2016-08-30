@@ -1,9 +1,9 @@
 from django.shortcuts import render
-from employee.models import Employee
-from django.http import HttpResponse
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-from employee.serializers import EmployeeSerializer
+from employee.models import Employee, Department
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from employee.serializers import EmployeeSerializer, DepartmentSerializer
 from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
@@ -21,19 +21,9 @@ def search(request):
 
     return render(request, 'search_form.html', {'errors': errors})
 
-class JSONResponse(HttpResponse):
-    """
-    An HttpResponse that renders its content into JSON
-    """
 
-    def __init__(self,data,**kwargs):
-        content = JSONRenderer().render(data)
-        kwargs['content_type'] = 'application/JSON'
-        super(JSONResponse,self).__init__(content,**kwargs)
-
-
-@csrf_exempt
-def employee_list(request):
+@api_view(['GET','POST'])
+def employee_list(request, format=None):
     """
     List all employees, or create a new employee
     """
@@ -41,18 +31,18 @@ def employee_list(request):
     if request.method == 'GET':
         employees = Employee.objects.all()
         serializer = EmployeeSerializer(employees,many=True)
-        return JSONResponse(serializer.data)
+        return Response(serializer.data)
 
     elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = EmployeeSerializer(data=data)
+        serializer = EmployeeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JSONResponse(serializer.data, status=201)
-        return JSONResponse(serializer.errors, status=400)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt
-def employee_detail(request,pk):
+
+@api_view(['GET','PUT','DELETE'])
+def employee_detail(request, pk, format=None):
     """
     Retrieve, update or delete a employee.
 
@@ -60,22 +50,67 @@ def employee_detail(request,pk):
     try:
         employee = Employee.objects.get(pk=pk)
     except Employee.DoesNotExist:
-        return HttpResponse(status=404)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method=='GET':
         serializer = EmployeeSerializer(employee)
-        return JSONResponse(serializer.data)
+        return Response(serializer.data)
 
     elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = EmployeeSerializer(employee,data=data)
+        serializer = EmployeeSerializer(employee,data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JSONResponse(serializer.data)
-        return JSONResponse(serializer.errors, status=400)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     elif request.method=='DELETE':
         employee.delete()
-        return HttpResponse(status=204)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET','POST'])
+def department_list(request,format=None):
+    """
+    List all departments
+    """
+    if request.method == 'GET':
+        departments = Department.objects.all()
+        serializer = DepartmentSerializer(departments,many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = DepartmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET','PUT','DELETE'])
+def department_detail(request, pk, format=None):
+    """
+    Retrieve, update or delete a department
+
+    """
+    try:
+        department = Department.objects.get(pk=pk)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        serializer = DepartmentSerializer(department)
+        return Response(serializer.data)
+    elif request.method == 'PUT':
+        serializer = Department(department, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        department.delet()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
 
 
 
